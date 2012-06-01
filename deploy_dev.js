@@ -87,11 +87,12 @@ DevDeployer.prototype.updateDNS = function(cb) {
 var deployer = new DevDeployer();
 
 deployer.on('progress', function(d) {
-  if (d.substr('"pass"') !== -1) d = "<OUTPUT HIDDEN>";
+  if (d.indexOf('"pass"') !== -1) d = "<OUTPUT HIDDEN>";
   console.log("PR: " + d);
 });
 
 deployer.on('build_output', function(d) {
+  if (d.indexOf('"pass"') !== -1) d = "<OUTPUT HIDDEN>";
   console.log("BO: " + d);
 });
 
