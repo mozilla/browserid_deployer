@@ -194,7 +194,7 @@ console.log("deployment log dir is:", deployLogDir);
 
 // irc integration!
 var ircClient = null;
-const ircChannel = '#identity_test';
+const ircChannel = '#identity';
 function ircSend(msg) {
   if (!ircClient) {
     ircClient = new irc.Client('irc.mozilla.org', 'persona_deployer', {
