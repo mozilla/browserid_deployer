@@ -30,7 +30,6 @@ util.inherits(DevDeployer, events.EventEmitter);
 
 DevDeployer.prototype.setup = function(cb) {
   var self = this;
-  console.log(process.cwd(), process.env.PWD);
   git.currentSHA(process.cwd(), function(err, r) {
     if (err) return cb(err);
     self.sha = r;
@@ -75,7 +74,7 @@ DevDeployer.prototype.create = function(cb) {
 
 DevDeployer.prototype.pushCode = function(cb) {
   var self = this;
-  git.push(process.env.PWD, this.ipAddress, function(d) { self.emit('build_output', d); }, cb);
+  git.push(process.cwd(), this.ipAddress, function(d) { self.emit('build_output', d); }, cb);
 }
 
 DevDeployer.prototype.updateDNS = function(cb) {
