@@ -79,8 +79,8 @@ DevDeployer.prototype.pushCode = function(cb) {
 
 DevDeployer.prototype.updateDNS = function(cb) {
   var self = this;
-  dns.deleteRecord('dev.anosrep.org', function() {
-    dns.updateRecord('', 'dev.anosrep.org', self.ipAddress, cb);
+  dns.deleteRecord(process.env['ZERIGO_DNS_KEY'], 'dev.anosrep.org', function() {
+    dns.updateRecord(process.env['ZERIGO_DNS_KEY'], '', 'dev.anosrep.org', self.ipAddress, cb);
   });
 }
 
