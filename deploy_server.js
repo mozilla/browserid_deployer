@@ -72,7 +72,7 @@ Deployer.prototype._cleanUpOldVMs = function() {
     if (err) return self.emit('info', err);
     vm.list(function(err, r) {
       if (err) return self.emit('info', err);
-      // only check the vms that have 'dev.diresworb.org' as a name
+      // only check the vms that have 'dev.anosrep.org' as a name
       jsel.forEach("object:has(:root > .name:contains(?))", [ "dev.anosrep.org" ], r, function(o) {
         // don't delete the current one
         if (o.name.indexOf(latest) == -1) {
@@ -123,7 +123,7 @@ Deployer.prototype._deployNewCode = function(cb) {
 
 Deployer.prototype._pullLatest = function(cb) {
   var self = this;
-  git.pull(this._codeDir, 'git://github.com/mozilla/browserid', 'dev', function(l) {
+  git.pull(this._codeDir, 'git://github.com/mozilla/browserid', 'awsbox_port', function(l) {
     self.emit('progress', l);
   }, function(err) {
     if (err) return cb(err);
