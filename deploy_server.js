@@ -77,7 +77,7 @@ Deployer.prototype._cleanUpOldVMs = function() {
         // don't delete the current one
         if (o.name.indexOf(latest) == -1) {
           self.emit('info', 'decommissioning VM: ' + o.name + ' - ' + o.instanceId);
-          vm.destroy(o.name, function(err, r) {
+          vm.destroy(o.instanceId, function(err, r) {
             if (err) self.emit('info', 'decomissioning failed: ' + err);
             else self.emit('info', 'decomissioning succeeded of ' + r);
           })
