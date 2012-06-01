@@ -244,8 +244,8 @@ deployer.on('deployment_complete', function(r) {
   closeLogFile();
   deployingSHA = null;
 
-  // always check to see if we should try another deployment after one succeeds to handle rapid fire
-  // commits
+  // always check to see if we should try another deployment after one succeeds to handle
+  // rapid fire commits
   deployer.checkForUpdates();
 });
 
