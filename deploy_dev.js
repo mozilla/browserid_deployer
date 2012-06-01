@@ -5,15 +5,13 @@
  */
 
 const
-aws = require('./deploy/aws.js');
 path = require('path');
-vm = require('./deploy/vm.js'),
-key = require('./deploy/key.js'),
-ssh = require('./deploy/ssh.js'),
-git = require('./deploy/git.js'),
-dns = require('./deploy/dns.js'),
+ssh = require('awsbox/lib/ssh.js'),
+git = require('awsbox/lib/git.js'),
+dns = require('awsbox/lib/dns.js'),
 util = require('util'),
 events = require('events'),
+child_process = require('child_process'),
 fs = require('fs');
 
 // verify we have files we need
@@ -22,19 +20,9 @@ fs = require('fs');
 function DevDeployer() {
   events.EventEmitter.call(this);
 
-  this.sslpub = process.env['DEV_SSL_PUB'];
-  this.sslpriv = process.env['DEV_SSL_PRIV'];
   this.keypairs = [];
   if (process.env['ADDITIONAL_KEYPAIRS']) {
     this.keypairs = process.env['ADDITIONAL_KEYPAIRS'].split(',');
-  }
-
-  if (!this.sslpub || !this.sslpriv) {
-    throw("you must provide ssl cert paths via DEV_SSL_PUB & DEV_SSL_PRIV");
-  }
-
-  if (!fs.statSync(this.sslpub).isFile() || !fs.statSync(this.sslpriv).isFile()) {
-    throw("DEV_SSL_PUB & DEV_SSL_PRIV must be paths to actual files.  duh");
   }
 }
 
@@ -42,58 +30,57 @@ util.inherits(DevDeployer, events.EventEmitter);
 
 DevDeployer.prototype.setup = function(cb) {
   var self = this;
-  git.currentSHA(function(err, r) {
+  git.currentSHA(process.env['PWD'], function(err, r) {
     if (err) return cb(err);
     self.sha = r;
-    vm.startImage(function(err, r) {
-      if (err) return cb(err);
-      self.emit('progress', "starting new image");
-      vm.waitForInstance(r.instanceId, function(err, d) {
-        if (err) return cb(err);
-        self.deets = d;
-        self.emit('progress', "image started");
-        vm.setName(r.instanceId, "dev.diresworb.org (" + self.sha + ")", function(err, r) {
-          if (err) return cb(err);
-          self.emit('progress', "name set");
-          cb(null);
-        });
-      });
-    });
+    cb(null);
   });
 }
 
-DevDeployer.prototype.configure = function(cb) {
+DevDeployer.prototype.create = function(cb) {
   var self = this;
-  var config = { public_url: "https://dev.diresworb.org" };
-  ssh.copyUpConfig(self.deets.ipAddress, config, function (err) {
-    if (err) return cb(err);
-    ssh.copySSL(self.deets.ipAddress, self.sslpub, self.sslpriv, function(err) {
-      if (err) return cb(err);
 
-      // now copy up addtional keypairs
-      var i = 0;
-      function copyNext() {
-        if (i == self.keypairs.length) return cb(null);
-        ssh.addSSHPubKey(self.deets.ipAddress, self.keypairs[i++], function(err) {
-          if (err) return cb(err);
-          self.emit('progress', "key added...");
-          copyNext();
-        });
-      }
-      copyNext();
-    });
+  var cmd = [
+    "node_modules/.bin/awsbox create",
+    "-n \"dev.anosrep.org (" + self.sha + ")\"",
+    "-u https://dev.anosrep.org",
+    "-p ~/cert.pem",
+    "-s ~/key.pem",
+    "-x ~/smtp.json",
+    "-t m1.small",
+    "--no-remote"
+  ].join(" ");
+
+  var cp = child_process.exec(cmd, function(err, so, se) {
+    checkerr(err);
+
+    // now parse out ip address
+    self.ipAddress = /\"ipAddress\":\s\"([0-9\.]+)\"/.exec(so)[1];
+
+    var i = 0;
+    function copyNext() {
+      if (i == self.keypairs.length) return cb(null);
+      ssh.addSSHPubKey(self.ipAddress, self.keypairs[i++], function(err) {
+        if (err) return cb(err);
+        self.emit('progress', "key added...");
+        copyNext();
+      });
+    }
+    copyNext();
   });
+  cp.stdout.pipe(process.stdout);
+  cp.stderr.pipe(process.stderr);
 }
 
 DevDeployer.prototype.pushCode = function(cb) {
   var self = this;
-  git.push(this.deets.ipAddress, function(d) { self.emit('build_output', d); }, cb);
+  git.push(process.env.PWD, this.ipAddress, function(d) { self.emit('build_output', d); }, cb);
 }
 
 DevDeployer.prototype.updateDNS = function(cb) {
   var self = this;
   dns.deleteRecord('dev.diresworb.org', function() {
-    dns.updateRecord('', 'dev.diresworb.org', self.deets.ipAddress, cb);
+    dns.updateRecord('', 'dev.diresworb.org', self.ipAddress, cb);
   });
 }
 
@@ -117,16 +104,13 @@ function checkerr(err) {
 var startTime = new Date();
 deployer.setup(function(err) {
   checkerr(err);
-  deployer.configure(function(err) {
+  deployer.create(function(err) {
     checkerr(err);
-    deployer.updateDNS(function(err) {
+    deployer.pushCode(function(err) {
       checkerr(err);
-      deployer.pushCode(function(err) {
-        checkerr(err);
-        console.log("dev.diresworb.org (" + deployer.sha + ") deployed to " +
-                    deployer.deets.ipAddress + " in " +
-                    ((new Date() - startTime) / 1000.0).toFixed(2) + "s");
-      });
+      console.log("dev.diresworb.org (" + deployer.sha + ") deployed to " +
+                  deployer.ipAddress + " in " +
+                  ((new Date() - startTime) / 1000.0).toFixed(2) + "s");
     });
   });
 });

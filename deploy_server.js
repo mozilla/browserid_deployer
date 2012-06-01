@@ -6,8 +6,8 @@ path = require('path'),
 util = require('util'),
 events = require('events'),
 git = require('awsbox/lib/git.js'),
-https = require('https'),
 vm = require('awsbox/lib/vm.js'),
+https = require('https'),
 jsel = require('JSONSelect'),
 fs = require('fs'),
 express = require('express'),
@@ -44,7 +44,7 @@ Deployer.prototype._getLatestRunningSHA = function(cb) {
     cb(null, null);
   }
 
-  https.get({ host: 'dev.diresworb.org', path: '/ver.txt' }, function(res) {
+  https.get({ host: 'dev.anosrep.org', path: '/ver.txt' }, function(res) {
     var buf = "";
     res.on('data', function (c) { buf += c });
     res.on('end', function() {
@@ -73,7 +73,7 @@ Deployer.prototype._cleanUpOldVMs = function() {
     vm.list(function(err, r) {
       if (err) return self.emit('info', err);
       // only check the vms that have 'dev.diresworb.org' as a name
-      jsel.forEach("object:has(:root > .name:contains(?))", [ "dev.diresworb.org" ], r, function(o) {
+      jsel.forEach("object:has(:root > .name:contains(?))", [ "dev.anosrep.org" ], r, function(o) {
         // don't delete the current one
         if (o.name.indexOf(latest) == -1) {
           self.emit('info', 'decommissioning VM: ' + o.name + ' - ' + o.instanceId);
@@ -110,7 +110,7 @@ Deployer.prototype._deployNewCode = function(cb) {
       self.emit('error', "can't npm install to prepare to run deploy_dev");
       return;
     }
-    var p = spawn('scripts/deploy_dev.js', [], { cwd: self._codeDir });
+    var p = spawn('deploy_dev.js', [], { cwd: self._codeDir });
 
     p.stdout.on('data', splitAndEmit);
     p.stderr.on('data', splitAndEmit);
@@ -194,7 +194,7 @@ console.log("deployment log dir is:", deployLogDir);
 
 // irc integration!
 var ircClient = null;
-const ircChannel = '#identity';
+const ircChannel = '#identity_test';
 function ircSend(msg) {
   if (!ircClient) {
     ircClient = new irc.Client('irc.mozilla.org', 'browserid_deployer', {
