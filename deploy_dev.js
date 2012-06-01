@@ -30,7 +30,8 @@ util.inherits(DevDeployer, events.EventEmitter);
 
 DevDeployer.prototype.setup = function(cb) {
   var self = this;
-  git.currentSHA(process.env['PWD'], function(err, r) {
+  console.log(process.cwd(), process.env.PWD);
+  git.currentSHA(process.cwd(), function(err, r) {
     if (err) return cb(err);
     self.sha = r;
     cb(null);
