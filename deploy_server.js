@@ -226,7 +226,7 @@ deployer.on('deployment_begins', function(r) {
   currentLogFile = fs.createWriteStream(path.join(deployLogDir, r.sha + ".txt"));
   currentLogFile.write("deployment of " + r.sha + " begins\n");
   deployingSHA = r.sha;
-  ircSend("deploying " + r.sha + " - status https://deployer.hacksign.in/" + r.sha + ".txt");
+  ircSend("deploying " + r.sha + " - status https://deployer.personatest.org/" + r.sha + ".txt");
 });
 
 function closeLogFile() {
