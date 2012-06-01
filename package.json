@@ -1,5 +1,5 @@
 {
-    "name": "browserid_deployer",
+    "name": "persona_deployer",
     "version": "0.0.1",
     "private": true,
     "dependencies": {

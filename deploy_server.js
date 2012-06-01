@@ -197,7 +197,7 @@ var ircClient = null;
 const ircChannel = '#identity_test';
 function ircSend(msg) {
   if (!ircClient) {
-    ircClient = new irc.Client('irc.mozilla.org', 'browserid_deployer', {
+    ircClient = new irc.Client('irc.mozilla.org', 'persona_deployer', {
       channels: [ircChannel]
     });
     ircClient.on('error', function(e) {
