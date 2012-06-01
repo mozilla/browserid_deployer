@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /*
- * Deploy dev.diresworb.org, for fun and profit.
+ * Deploy dev.anosrep.org, for fun and profit.
  */
 
 const
@@ -79,8 +79,8 @@ DevDeployer.prototype.pushCode = function(cb) {
 
 DevDeployer.prototype.updateDNS = function(cb) {
   var self = this;
-  dns.deleteRecord('dev.diresworb.org', function() {
-    dns.updateRecord('', 'dev.diresworb.org', self.ipAddress, cb);
+  dns.deleteRecord('dev.anosrep.org', function() {
+    dns.updateRecord('', 'dev.anosrep.org', self.ipAddress, cb);
   });
 }
 
@@ -108,9 +108,12 @@ deployer.setup(function(err) {
     checkerr(err);
     deployer.pushCode(function(err) {
       checkerr(err);
-      console.log("dev.diresworb.org (" + deployer.sha + ") deployed to " +
-                  deployer.ipAddress + " in " +
-                  ((new Date() - startTime) / 1000.0).toFixed(2) + "s");
+      deployer.updateDNS(function(err) {
+        checkerr(err);
+        console.log("dev.anosrep.org (" + deployer.sha + ") deployed to " +
+                    deployer.ipAddress + " in " +
+                    ((new Date() - startTime) / 1000.0).toFixed(2) + "s");
+      });
     });
   });
 });
