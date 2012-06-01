@@ -110,7 +110,7 @@ Deployer.prototype._deployNewCode = function(cb) {
       self.emit('error', "can't npm install to prepare to run deploy_dev");
       return;
     }
-    var p = spawn('deploy_dev.js', [], { cwd: self._codeDir });
+    var p = spawn(path.join(__dirname, 'deploy_dev.js'), [], { cwd: self._codeDir });
 
     p.stdout.on('data', splitAndEmit);
     p.stderr.on('data', splitAndEmit);
