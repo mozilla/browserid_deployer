@@ -185,8 +185,8 @@ console.log("deployment log dir is:", deployLogDir);
 
 [ 'info', 'ready', 'error', 'deployment_begins', 'deployment_complete', 'progress' ].forEach(function(evName) {
   deployer.on(evName, function(data) {
-    if (typeof data != 'string') data = JSON.stringify(data, null, 2);
-    var msg = evName + ": " + data;
+    if (data !== null && data !== undefined && typeof data != 'string') data = JSON.stringify(data, null, 2);
+    var msg = evName + (data ? (": " + data) : "")
     console.log(msg)
     if (currentLogFile) currentLogFile.write(msg + "\n");
   });
