@@ -248,10 +248,11 @@ deployer.on('error', function(r) {
 });
 
 
-// we check every 3 minutes no mattah what. (checks are cheap, github webhooks are flakey)
+// We check every 15 minutes, in case a cosmic ray hits and github's
+// webhooks fail, or other unexpected errors occur
 setInterval(function () {
   deployer.checkForUpdates();
-}, (1000 * 60 * 3));
+}, (1000 * 60 * 15));
 
 // check for updates at startup
 deployer.on('ready', function() {
