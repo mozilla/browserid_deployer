@@ -11,7 +11,8 @@ https = require('https'),
 jsel = require('JSONSelect'),
 fs = require('fs'),
 express = require('express'),
-irc = require('irc');
+irc = require('irc'),
+latestSha = require('./lib/latest_sha.js');
 
 const DEPLOY_HOSTNAME = "dev.diresworb.org";
 
@@ -39,33 +40,8 @@ util.inherits(Deployer, events.EventEmitter);
 
 Deployer.prototype._getLatestRunningSHA = function(cb) {
   var self = this;
-
-  // failure is not fatal.  maybe nothing is running?
-  var fail = function(err) {
-    self.emit('info', { msg: "can't get current running sha", reason: err });
-    cb(null, null);
-  }
-
-  https.get({ host: DEPLOY_HOSTNAME, path: '/ver.txt' }, function(res) {
-    var buf = "";
-    res.on('data', function (c) { buf += c });
-    res.on('end', function() {
-      try {
-        var sha = buf.split(' ')[0];
-        if (sha.length == 7) {
-          self.emit('info', 'latest running is ' + sha);
-          return cb(null, sha);
-        }
-        fail('malformed ver.txt: ' + buf);
-      } catch(e) {
-        fail(e);
-      }
-    });
-  }).on('error', function(err) {
-    fail(err);
-  });
-
-}
+  latestSha(DEPLOY_HOSTNAME, cb);
+};
 
 Deployer.prototype._cleanUpOldVMs = function() {
   var self = this;
