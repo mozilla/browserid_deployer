@@ -125,7 +125,7 @@ Deployer.prototype._deployNewCode = function(cb) {
 
 Deployer.prototype._pullLatest = function(cb) {
   var self = this;
-  git.pull(this._codeDir, 'git://github.com/mozilla/browserid', 'awsbox_port', function(l) {
+  git.pull(this._codeDir, 'git://github.com/mozilla/browserid', 'dev', function(l) {
     self.emit('progress', l);
   }, function(err) {
     if (err) return cb(err);
