@@ -257,6 +257,11 @@ deployer.on('ready', function() {
     res.send('ok');
   });
 
+  app.post('/check', function(req, res) {
+    deployer.checkForUpdates();
+    res.send('ok');
+  });
+
   app.get('/', function(req, res) {
     var what = "idle";
     if (deployingSHA) what = "deploying " + deployingSHA;
