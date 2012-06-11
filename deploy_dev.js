@@ -51,6 +51,7 @@ DevDeployer.prototype.create = function(cb) {
     "-t m1.small",
     "--no-remote",
     "--ssl=force",
+    "--no-dnscheck",
     "-d"
   ].join(" ");
 
