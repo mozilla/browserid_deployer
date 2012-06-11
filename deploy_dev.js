@@ -8,7 +8,6 @@ const
 path = require('path');
 ssh = require('awsbox/lib/ssh.js'),
 git = require('awsbox/lib/git.js'),
-dns = require('awsbox/lib/dns.js'),
 util = require('util'),
 events = require('events'),
 child_process = require('child_process'),
@@ -51,7 +50,8 @@ DevDeployer.prototype.create = function(cb) {
     "-x ~/smtp.json",
     "-t m1.small",
     "--no-remote",
-    "--ssl=force"
+    "--ssl=force",
+    "-d"
   ].join(" ");
 
   var cp = child_process.exec(cmd, function(err, so, se) {
@@ -80,14 +80,6 @@ DevDeployer.prototype.pushCode = function(cb) {
   git.push(process.cwd(), this.ipAddress, function(d) { self.emit('build_output', d); }, cb);
 }
 
-DevDeployer.prototype.updateDNS = function(cb) {
-  var self = this;
-  dns.deleteRecord(process.env['ZERIGO_DNS_KEY'], DEPLOY_HOSTNAME, function() {
-    dns.updateRecord(process.env['ZERIGO_DNS_KEY'], DEPLOY_HOSTNAME,
-                     self.ipAddress, cb);
-  });
-}
-
 var deployer = new DevDeployer();
 
 deployer.on('progress', function(d) {
@@ -114,12 +106,9 @@ deployer.setup(function(err) {
     checkerr(err);
     deployer.pushCode(function(err) {
       checkerr(err);
-      deployer.updateDNS(function(err) {
-        checkerr(err);
-        console.log(DEPLOY_HOSTNAME + " (" + deployer.sha + ") deployed to " +
-                    deployer.ipAddress + " in " +
-                    ((new Date() - startTime) / 1000.0).toFixed(2) + "s");
-      });
+      console.log(DEPLOY_HOSTNAME + " (" + deployer.sha + ") deployed to " +
+                  deployer.ipAddress + " in " +
+                  ((new Date() - startTime) / 1000.0).toFixed(2) + "s");
     });
   });
 });
