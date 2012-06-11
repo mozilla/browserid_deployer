@@ -50,7 +50,8 @@ DevDeployer.prototype.create = function(cb) {
     "-s ~/key.pem",
     "-x ~/smtp.json",
     "-t m1.small",
-    "--no-remote"
+    "--no-remote",
+    "--ssl=force"
   ].join(" ");
 
   var cp = child_process.exec(cmd, function(err, so, se) {
