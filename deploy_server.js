@@ -40,7 +40,14 @@ util.inherits(Deployer, events.EventEmitter);
 
 Deployer.prototype._getLatestRunningSHA = function(cb) {
   var self = this;
-  latestSha(DEPLOY_HOSTNAME, cb);
+  latestSha(DEPLOY_HOSTNAME, function(err, sha) {
+    if (err) {
+      self.emit('info', "can't get current running code: " + err);
+    } else {
+      self.emit('info', "current running sha is: " + sha);
+    }
+    cb(err, sha);
+  });
 };
 
 Deployer.prototype._cleanUpOldVMs = function() {
