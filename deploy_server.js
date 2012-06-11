@@ -13,6 +13,8 @@ fs = require('fs'),
 express = require('express'),
 irc = require('irc');
 
+const DEPLOY_HOSTNAME = "dev.diresworb.org";
+
 console.log("deploy server starting up");
 
 // a class capable of deploying and emmitting events along the way
@@ -44,7 +46,7 @@ Deployer.prototype._getLatestRunningSHA = function(cb) {
     cb(null, null);
   }
 
-  https.get({ host: 'dev.anosrep.org', path: '/ver.txt' }, function(res) {
+  https.get({ host: DEPLOY_HOSTNAME, path: '/ver.txt' }, function(res) {
     var buf = "";
     res.on('data', function (c) { buf += c });
     res.on('end', function() {
@@ -72,8 +74,8 @@ Deployer.prototype._cleanUpOldVMs = function() {
     if (err) return self.emit('info', err);
     vm.list(function(err, r) {
       if (err) return self.emit('info', err);
-      // only check the vms that have 'dev.anosrep.org' as a name
-      jsel.forEach("object:has(:root > .name:contains(?))", [ "dev.anosrep.org" ], r, function(o) {
+      // only check the vms that have DEPLOY_HOSTNAME as a name
+      jsel.forEach("object:has(:root > .name:contains(?))", [ DEPLOY_HOSTNAME ], r, function(o) {
         // don't delete the current one
         if (o.name.indexOf(latest) == -1) {
           self.emit('info', 'decommissioning VM: ' + o.name + ' - ' + o.instanceId);

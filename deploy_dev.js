@@ -14,6 +14,8 @@ events = require('events'),
 child_process = require('child_process'),
 fs = require('fs');
 
+const DEPLOY_HOSTNAME = "dev.diresworb.org";
+
 // verify we have files we need
 
 // a class capable of deploying and emmitting events along the way
@@ -42,8 +44,8 @@ DevDeployer.prototype.create = function(cb) {
 
   var cmd = [
     "node_modules/.bin/awsbox create",
-    "-n \"dev.anosrep.org (" + self.sha + ")\"",
-    "-u https://dev.anosrep.org",
+    "-n \"" + DEPLOY_HOSTNAME + " (" + self.sha + ")\"",
+    "-u https://" + DEPLOY_HOSTNAME,
     "-p ~/cert.pem",
     "-s ~/key.pem",
     "-x ~/smtp.json",
@@ -79,8 +81,9 @@ DevDeployer.prototype.pushCode = function(cb) {
 
 DevDeployer.prototype.updateDNS = function(cb) {
   var self = this;
-  dns.deleteRecord(process.env['ZERIGO_DNS_KEY'], 'dev.anosrep.org', function() {
-    dns.updateRecord(process.env['ZERIGO_DNS_KEY'], 'dev.anosrep.org', self.ipAddress, cb);
+  dns.deleteRecord(process.env['ZERIGO_DNS_KEY'], DEPLOY_HOSTNAME, function() {
+    dns.updateRecord(process.env['ZERIGO_DNS_KEY'], DEPLOY_HOSTNAME,
+                     self.ipAddress, cb);
   });
 }
 
@@ -112,7 +115,7 @@ deployer.setup(function(err) {
       checkerr(err);
       deployer.updateDNS(function(err) {
         checkerr(err);
-        console.log("dev.anosrep.org (" + deployer.sha + ") deployed to " +
+        console.log(DEPLOY_HOSTNAME + " (" + deployer.sha + ") deployed to " +
                     deployer.ipAddress + " in " +
                     ((new Date() - startTime) / 1000.0).toFixed(2) + "s");
       });
