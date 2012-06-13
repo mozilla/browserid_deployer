@@ -61,16 +61,18 @@ DevDeployer.prototype.create = function(cb) {
     // now parse out ip address
     self.ipAddress = /\"ipAddress\":\s\"([0-9\.]+)\"/.exec(so)[1];
 
-    var i = 0;
-    function copyNext() {
-      if (i == self.keypairs.length) return cb(null);
-      ssh.addSSHPubKey(self.ipAddress, self.keypairs[i++], function(err) {
-        if (err) return cb(err);
-        self.emit('progress', "key added...");
-        copyNext();
-      });
-    }
-    copyNext();
+    ssh.runScript(self.ipAddress, path.join(__dirname, 'test_user_creation.sh'), function(err) {
+      var i = 0;
+      function copyNext() {
+        if (i == self.keypairs.length) return cb(null);
+        ssh.addSSHPubKey(self.ipAddress, self.keypairs[i++], function(err) {
+          if (err) return cb(err);
+          self.emit('progress', "key added...");
+          copyNext();
+        });
+      }
+      copyNext();
+    });
   });
   cp.stdout.pipe(process.stdout);
   cp.stderr.pipe(process.stderr);
