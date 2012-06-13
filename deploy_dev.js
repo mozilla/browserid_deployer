@@ -109,7 +109,7 @@ deployer.setup(function(err) {
       checkerr(err);
       console.log('creating QA test user...');
       ssh.runScript(
-        self.ipAddress,
+        deployer.ipAddress,
         path.join(__dirname, 'test_user_creation.sh'),
         function(err) {
           console.log(DEPLOY_HOSTNAME + " (" + deployer.sha + ") " +
