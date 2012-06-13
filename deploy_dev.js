@@ -61,18 +61,16 @@ DevDeployer.prototype.create = function(cb) {
     // now parse out ip address
     self.ipAddress = /\"ipAddress\":\s\"([0-9\.]+)\"/.exec(so)[1];
 
-    ssh.runScript(self.ipAddress, path.join(__dirname, 'test_user_creation.sh'), function(err) {
-      var i = 0;
-      function copyNext() {
-        if (i == self.keypairs.length) return cb(null);
-        ssh.addSSHPubKey(self.ipAddress, self.keypairs[i++], function(err) {
-          if (err) return cb(err);
-          self.emit('progress', "key added...");
-          copyNext();
-        });
-      }
-      copyNext();
-    });
+    var i = 0;
+    function copyNext() {
+      if (i == self.keypairs.length) return cb(null);
+      ssh.addSSHPubKey(self.ipAddress, self.keypairs[i++], function(err) {
+        if (err) return cb(err);
+        self.emit('progress', "key added...");
+        copyNext();
+      });
+    }
+    copyNext();
   });
   cp.stdout.pipe(process.stdout);
   cp.stderr.pipe(process.stderr);
@@ -109,9 +107,15 @@ deployer.setup(function(err) {
     checkerr(err);
     deployer.pushCode(function(err) {
       checkerr(err);
-      console.log(DEPLOY_HOSTNAME + " (" + deployer.sha + ") deployed to " +
-                  deployer.ipAddress + " in " +
-                  ((new Date() - startTime) / 1000.0).toFixed(2) + "s");
+      console.log('creating QA test user...');
+      ssh.runScript(
+        self.ipAddress,
+        path.join(__dirname, 'test_user_creation.sh'),
+        function(err) {
+          console.log(DEPLOY_HOSTNAME + " (" + deployer.sha + ") " +
+                      "deployed to " + deployer.ipAddress + " in " +
+                      ((new Date() - startTime) / 1000.0).toFixed(2) + "s");
+        });
     });
   });
 });
