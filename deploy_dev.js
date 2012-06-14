@@ -15,6 +15,8 @@ fs = require('fs');
 
 const DEPLOY_HOSTNAME = "login.dev.anosrep.org";
 
+const INSTANCE_TYPE = process.env['INSTANCE_TYPE'] || 'm1.small';
+
 // verify we have files we need
 
 // a class capable of deploying and emmitting events along the way
@@ -48,7 +50,7 @@ DevDeployer.prototype.create = function(cb) {
     "-p ~/cert.pem",
     "-s ~/key.pem",
     "-x ~/smtp.json",
-    "-t m1.small",
+    "-t " + INSTANCE_TYPE,
     "--no-remote",
     "--ssl=force",
     "--no-dnscheck",
