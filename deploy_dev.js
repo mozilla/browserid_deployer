@@ -13,7 +13,7 @@ events = require('events'),
 child_process = require('child_process'),
 fs = require('fs');
 
-const DEPLOY_HOSTNAME = "dev.diresworb.org";
+const DEPLOY_HOSTNAME = "login.dev.anosrep.org";
 
 // verify we have files we need
 
