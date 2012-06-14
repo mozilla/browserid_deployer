@@ -14,7 +14,7 @@ express = require('express'),
 irc = require('irc'),
 latestSha = require('./lib/latest_sha.js');
 
-const DEPLOY_HOSTNAME = "dev.diresworb.org";
+const DEPLOY_HOSTNAME = "login.dev.anosrep.org";
 
 console.log("deploy server starting up");
 
