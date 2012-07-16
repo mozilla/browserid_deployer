@@ -102,22 +102,41 @@ function checkerr(err) {
   }
 }
 
+function copyDomainKeys(ip, cb) {
+  fs.stat("/home/app/root.cert", function(e1, s1) {
+    fs.stat("/home/app/root.secretkey", function(e2, s2) {
+      if (e1 || e2 || !s1.isFile() || !s2.isFile()) {
+        console.log("!! can't find domain keys, skipping");
+        return cb();
+      }
+      ssh.copyFile(ip, "app", "/home/app/root.cert", "var/", function(err) {
+        if (err) return cb(err);
+        ssh.copyFile(ip, "app", "/home/app/root.secretkey", "var/", cb);
+      });
+    });
+  });
+}
+
 var startTime = new Date();
 deployer.setup(function(err) {
   checkerr(err);
   deployer.create(function(err) {
     checkerr(err);
-    deployer.pushCode(function(err) {
+    console.log('copying up domain keys...');
+    copyDomainKeys(deployer.ipAddress, function(err) {
       checkerr(err);
-      console.log('creating QA test user...');
-      ssh.runScript(
-        deployer.ipAddress,
-        path.join(__dirname, 'test_user_creation.sh'),
-        function(err) {
-          console.log(DEPLOY_HOSTNAME + " (" + deployer.sha + ") " +
-                      "deployed to " + deployer.ipAddress + " in " +
-                      ((new Date() - startTime) / 1000.0).toFixed(2) + "s");
-        });
+      deployer.pushCode(function(err) {
+        checkerr(err);
+        console.log('creating QA test user...');
+        ssh.runScript(
+          deployer.ipAddress,
+          path.join(__dirname, 'test_user_creation.sh'),
+          function(err) {
+            console.log(DEPLOY_HOSTNAME + " (" + deployer.sha + ") " +
+                        "deployed to " + deployer.ipAddress + " in " +
+                        ((new Date() - startTime) / 1000.0).toFixed(2) + "s");
+          });
+      });
     });
   });
 });
