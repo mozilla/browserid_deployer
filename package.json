@@ -1,19 +1,19 @@
 {
-    "name": "persona_deployer",
-    "version": "0.0.1",
-    "private": true,
-    "dependencies": {
-        "awsbox": "0.2.14",
-        "express": "2.5.0",
-        "JSONSelect": "0.4.0",
-        "irc": "0.3.3",
-        "native-dns": "0.0.7"
-    },
-    "devDependencies": {
-    },
-    "scripts": {
-    },
-    "engines": {
-        "node": ">= 0.6.11"
-    }
+  "name": "persona_deployer",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "awsbox": "0.3.4",
+    "express": "2.5.0",
+    "JSONSelect": "0.4.0",
+    "irc": "0.3.3",
+    "native-dns": "0.0.7"
+  },
+  "devDependencies": {
+  },
+  "scripts": {
+  },
+  "engines": {
+    "node": ">= 0.8.12"
+  }
 }
