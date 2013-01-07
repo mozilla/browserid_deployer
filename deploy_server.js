@@ -12,7 +12,8 @@ jsel = require('JSONSelect'),
 fs = require('fs'),
 express = require('express'),
 irc = require('irc'),
-latestSha = require('./lib/latest_sha.js');
+latestSha = require('./lib/latest_sha.js'),
+spawn = require('child_process').spawn;
 
 const DEPLOY_HOSTNAME = "login.dev.anosrep.org";
 
