@@ -7,6 +7,7 @@
 const
 path = require('path');
 ssh = require('awsbox/lib/ssh.js'),
+key = require('awsbox/lib/key.js'),
 git = require('awsbox/lib/git.js'),
 util = require('util'),
 events = require('events'),
@@ -22,11 +23,6 @@ const INSTANCE_TYPE = process.env['INSTANCE_TYPE'] || 'm1.small';
 // a class capable of deploying and emmitting events along the way
 function DevDeployer() {
   events.EventEmitter.call(this);
-
-  this.keypairs = [];
-  if (process.env['ADDITIONAL_KEYPAIRS']) {
-    this.keypairs = process.env['ADDITIONAL_KEYPAIRS'].split(',');
-  }
 }
 
 util.inherits(DevDeployer, events.EventEmitter);
@@ -63,16 +59,9 @@ DevDeployer.prototype.create = function(cb) {
     // now parse out ip address
     self.ipAddress = /\"ipAddress\":\s\"([0-9\.]+)\"/.exec(so)[1];
 
-    var i = 0;
-    function copyNext() {
-      if (i == self.keypairs.length) return cb(null);
-      ssh.addSSHPubKey(self.ipAddress, self.keypairs[i++], function(err) {
-        if (err) return cb(err);
-        self.emit('progress', "key added...");
-        copyNext();
-      });
-    }
-    copyNext();
+    key.addKeysFromDirectory(self.ipAddress, process.env['PUBKEY_DIR'], function(msg) {
+      self.emit('progress', msg);
+    }, cb);
   });
   cp.stdout.pipe(process.stdout);
   cp.stderr.pipe(process.stderr);
