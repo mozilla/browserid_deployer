@@ -117,6 +117,7 @@ Deployer.prototype._pullLatest = function(cb) {
       if (err) return cb(err);
       self.emit('info', 'latest available sha is ' + latest);
       self._getLatestRunningSHA(function(err, running) {
+        if (err) return cb(err);
         if (latest != running) {
           self.emit('deployment_begins', {
             sha: latest,
