@@ -237,7 +237,11 @@ deployer.on('deployment_complete', function(r) {
 });
 
 deployer.on('error', function(r) {
-  ircSend("deployment of " + deployingSHA + " failed.  check logs for deets");
+  if (deployingSHA) {
+    ircSend("deployment of " + deployingSHA + " failed.  check logs for deets");
+  } else {
+    ircSend("error while looking for updates.  check logs for deets");
+  }
   ircDisconnect();
 
   closeLogFile();
