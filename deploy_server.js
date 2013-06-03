@@ -117,7 +117,11 @@ Deployer.prototype._pullLatest = function(cb) {
       if (err) return cb(err);
       self.emit('info', 'latest available sha is ' + latest);
       self._getLatestRunningSHA(function(err, running) {
-        if (err) return cb(err);
+        // this is not a fatal error, it just means there's no server running right now,
+        // we'll optimistically deploy anyway
+        if (err) {
+          self.emit('warn', 'latest available sha is ' + latest);
+        }
         if (latest != running) {
           self.emit('deployment_begins', {
             sha: latest,
