@@ -60,7 +60,7 @@ DevDeployer.prototype.create = function(cb) {
     self.ipAddress = /\"ipAddress\":\s\"([0-9\.]+)\"/.exec(so)[1];
 
     key.addKeysFromDirectory(self.ipAddress, process.env['PUBKEY_DIR'], function(msg) {
-      self.emit('progress', msg);
+      self.emit(new Date().toISOString() + ': progress', msg);
     }, cb);
   });
   cp.stdout.pipe(process.stdout);

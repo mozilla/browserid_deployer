@@ -81,7 +81,7 @@ Deployer.prototype._deployNewCode = function(cb) {
     if (typeof chunk === 'string') {
       chunk.split('\n').forEach(function (line) {
         line = line.trim();
-        if (line.length) self.emit('progress', line);
+        if (line.length) self.emit(new Date().toISOString() + ': progress', line);
       });
     }
   }
@@ -110,7 +110,7 @@ Deployer.prototype._deployNewCode = function(cb) {
 Deployer.prototype._pullLatest = function(cb) {
   var self = this;
   git.pull(this._codeDir, 'git://github.com/mozilla/browserid', 'dev', function(l) {
-    self.emit('progress', l);
+    self.emit(new Date().toISOString() + ': progress', l);
   }, function(err) {
     if (err) return cb(err);
     git.currentSHA(self._codeDir, function(err, latest) {
