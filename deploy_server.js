@@ -17,6 +17,10 @@ spawn = require('child_process').spawn;
 
 const DEPLOY_HOSTNAME = "login.dev.anosrep.org";
 
+// overwrite console.log with a time-aware logger
+console._log = console.log;
+console.log = function(x) { console._log(new Date().toISOString() + ": " + x) }
+
 console.log("deploy server starting up");
 
 // a class capable of deploying and emmitting events along the way
