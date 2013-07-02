@@ -17,7 +17,7 @@ spawn = require('child_process').spawn;
 
 const DEPLOY_HOSTNAME = "login.dev.anosrep.org";
 
-console.log("deploy server starting up");
+console.log(new Date().toISOString() + ": deploy server starting up");
 
 // a class capable of deploying and emmitting events along the way
 function Deployer() {
@@ -25,12 +25,12 @@ function Deployer() {
 
   // a directory where we'll keep code
   this._codeDir = process.env['CODE_DIR'] || temp.mkdirSync();
-  console.log("code dir is:", this._codeDir);
+  console.log(new Date().toISOString() + ": code dir is:", this._codeDir);
   var self = this;
 
   git.init(this._codeDir, function(err) {
     if (err) {
-      console.log("can't init code dir:", err);
+      console.log(new Date().toISOString() + ": can't init code dir:", err);
       process.exit(1);
     }
     self.emit('ready');
@@ -172,12 +172,12 @@ var deployLogDir = process.env['DEPLOY_LOG_DIR'] || temp.mkdirSync();
 
 var deployingSHA = null;
 
-console.log("deployment log dir is:", deployLogDir);
+console.log(new Date().toISOString() + ": deployment log dir is:", deployLogDir);
 
 [ 'info', 'ready', 'error', 'deployment_begins', 'deployment_complete', 'progress' ].forEach(function(evName) {
   deployer.on(evName, function(data) {
     if (data !== null && data !== undefined && typeof data != 'string') data = JSON.stringify(data, null, 2);
-    var msg = evName + (data ? (": " + data) : "")
+    var msg = new Date().toISOString() + ': ' +  evName + (data ? (": " + data) : "")
     console.log(msg)
     if (currentLogFile) currentLogFile.write(msg + "\n");
   });
@@ -192,7 +192,7 @@ function ircSend(msg) {
       channels: [ircChannel]
     });
     ircClient.on('error', function(e) {
-      console.log('irc error: ', e);
+      console.log(new Date().toISOString() + ': irc error: ', e);
     });
     ircClient.once('join' + ircChannel, function(e) {
       ircClient.say(ircChannel, msg);
@@ -289,6 +289,6 @@ deployer.on('ready', function() {
   app.use(express.static(deployLogDir));
 
   app.listen(process.env['PORT'] || 8080, function() {
-    console.log("deploy server bound");
+    console.log(new Date().toISOString() + ": deploy server bound");
   });
 });
