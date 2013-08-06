@@ -153,9 +153,9 @@ Deployer.prototype._pullLatest = function(cb) {
 Deployer.prototype.checkForUpdates = function() {
   var self = this;
 
-  if (this._busy) return;
+  if (self._busy) return;
 
-  this._busy = true;
+  self._busy = true;
   self.emit('info', 'checking for updates');
 
   self._pullLatest(function(err, sha) {
