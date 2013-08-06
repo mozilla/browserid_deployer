@@ -237,6 +237,7 @@ deployer.on('deployment_complete', function(r) {
 
   // always check to see if we should try another deployment after one succeeds to handle
   // rapid fire commits
+  console.log(new Date().toISOString() + ": checking for updates: received 'deployment_complete' signal, always check after deployment in case of rapid fire commits.");
   deployer.checkForUpdates();
 });
 
@@ -253,6 +254,7 @@ deployer.on('error', function(r) {
 
   // on error, try again in 2 minutes
   setTimeout(function () {
+    console.log(new Date().toISOString() + ": checking for updates: received 'error' signal, checking 2 min later.");
     deployer.checkForUpdates();
   }, 2 * 60 * 1000);
 });
@@ -261,21 +263,25 @@ deployer.on('error', function(r) {
 // We check every 15 minutes, in case a cosmic ray hits and github's
 // webhooks fail, or other unexpected errors occur
 setInterval(function () {
+  console.log(new Date().toISOString() + ": checking for updates: 15 min background loop, in case of githook or other errors.");
   deployer.checkForUpdates();
 }, (1000 * 60 * 15));
 
 // check for updates at startup
 deployer.on('ready', function() {
+  console.log(new Date().toISOString() + ": checking for updates: received 'ready' signal, checking on startup.");
   deployer.checkForUpdates();
 
   var app = express.createServer();
 
   app.get('/check', function(req, res) {
+    console.log(new Date().toISOString() + ": checking for updates: received HTTP GET to 'check' endpoint.");
     deployer.checkForUpdates();
     res.send('ok');
   });
 
   app.post('/check', function(req, res) {
+    console.log(new Date().toISOString() + ": checking for updates: received HTTP POST to 'check' endpoint.");
     deployer.checkForUpdates();
     res.send('ok');
   });
