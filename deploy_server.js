@@ -241,6 +241,8 @@ deployer.on('deployment_complete', function(r) {
   deployer.checkForUpdates();
 });
 
+var lastFailedSHA = null;
+var minutesUntilRetry = 1;
 deployer.on('error', function(r) {
   if (deployingSHA) {
     ircSend("deployment of " + deployingSHA + " failed.  check logs for deets");
@@ -250,13 +252,22 @@ deployer.on('error', function(r) {
   ircDisconnect();
 
   closeLogFile();
+  if (deployingSHA === lastFailedSHA) {
+    if (minutesUntilRetry < 16) {
+      minutesUntilRetry *= 2;
+    }
+  } else {
+    minutesUntilRetry = 1;
+  }
+  lastFailedSHA = deployingSHA;
   deployingSHA = null;
 
-  // on error, try again in 2 minutes
+  // on error, try again in 1, 2, 4, 8, 16 minutes
   setTimeout(function () {
-    console.log(new Date().toISOString() + ": checking for updates: received 'error' signal, checking 2 min later.");
+    console.log(new Date().toISOString() + ": checking for updates: received 'error' signal, checking " + minutesUntilRetry + "min later.");
     deployer.checkForUpdates();
-  }, 2 * 60 * 1000);
+  }, minutesUntilRetry * 60 * 1000);
+
 });
 
 
