@@ -14,9 +14,18 @@ events = require('events'),
 child_process = require('child_process'),
 fs = require('fs');
 
-const DEPLOY_HOSTNAME = "login.dev.anosrep.org";
+const DEPLOY_HOSTNAME = process.env.DEPLOY_HOSTNAME || "login.dev.anosrep.org";
+
+const DEPLOY_ROOT_CERT      = process.env.DEPLOY_ROOT_CERT      || "/home/app/root.cert";
+const DEPLOY_ROOT_SECRETKEY = process.env.DEPLOY_ROOT_SECRETKEY || "/home/app/root.secretkey";
 
 const INSTANCE_TYPE = process.env['INSTANCE_TYPE'] || 'm1.small';
+
+const CERT_PEM  = process.env.PERSONA_SSL_PUB          || '~/cert.pem';
+const KEY_PEM   = process.env.PERSONA_SSL_PRIV         || '~/key.pem';
+const SMTP_JSON = process.env.PERSONA_EPHEMERAL_CONFIG || '~/smtp.json';
+
+const PUBKEY_DIR = process.env.PUBKEY_DIR || '/home/app/team_pubkeys';
 
 // verify we have files we need
 
@@ -43,9 +52,9 @@ DevDeployer.prototype.create = function(cb) {
     "node_modules/.bin/awsbox create",
     "-n \"" + DEPLOY_HOSTNAME + " (" + self.sha + ")\"",
     "-u https://" + DEPLOY_HOSTNAME,
-    "-p ~/cert.pem",
-    "-s ~/key.pem",
-    "-x ~/smtp.json",
+    "-p " + CERT_PEM,
+    "-s " + KEY_PEM,
+    "-x " + SMTP_JSON,
     "-t " + INSTANCE_TYPE,
     "--no-remote",
     "--ssl=force",
@@ -59,7 +68,11 @@ DevDeployer.prototype.create = function(cb) {
     // now parse out ip address
     self.ipAddress = /\"ipAddress\":\s\"([0-9\.]+)\"/.exec(so)[1];
 
-    key.addKeysFromDirectory(self.ipAddress, process.env['PUBKEY_DIR'], function(msg) {
+    if (!fs.existsSync(PUBKEY_DIR)) {
+      return cb(null);
+    }
+
+    key.addKeysFromDirectory(self.ipAddress, PUBKEY_DIR, function(msg) {
       self.emit('progress', msg);
     }, cb);
   });
@@ -92,15 +105,15 @@ function checkerr(err) {
 }
 
 function copyDomainKeys(ip, cb) {
-  fs.stat("/home/app/root.cert", function(e1, s1) {
-    fs.stat("/home/app/root.secretkey", function(e2, s2) {
+  fs.stat(DEPLOY_ROOT_CERT, function(e1, s1) {
+    fs.stat(DEPLOY_ROOT_SECRETKEY, function(e2, s2) {
       if (e1 || e2 || !s1.isFile() || !s2.isFile()) {
         console.log("!! can't find domain keys, skipping");
         return cb();
       }
-      ssh.copyFile(ip, "app", "/home/app/root.cert", "var/", function(err) {
+      ssh.copyFile(ip, "app", DEPLOY_ROOT_CERT, "var/", function(err) {
         if (err) return cb(err);
-        ssh.copyFile(ip, "app", "/home/app/root.secretkey", "var/", cb);
+        ssh.copyFile(ip, "app", DEPLOY_ROOT_SECRETKEY, "var/", cb);
       });
     });
   });
@@ -114,8 +127,10 @@ deployer.setup(function(err) {
     console.log('copying up domain keys...');
     copyDomainKeys(deployer.ipAddress, function(err) {
       checkerr(err);
+      console.log('domain keys copy complete...');
       deployer.pushCode(function(err) {
         checkerr(err);
+        console.log('push of code complete...');
         console.log('creating QA test user...');
         ssh.runScript(
           deployer.ipAddress,
