@@ -5,6 +5,7 @@ temp = require('temp'),
 path = require('path'),
 util = require('util'),
 events = require('events'),
+aws = require('awsbox/lib/aws.js'),
 git = require('awsbox/lib/git.js'),
 vm = require('awsbox/lib/vm.js'),
 https = require('https'),
@@ -15,9 +16,15 @@ irc = require('irc'),
 latestSha = require('./lib/latest_sha.js'),
 spawn = require('child_process').spawn;
 
-const DEPLOY_HOSTNAME = "login.dev.anosrep.org";
+const DEPLOY_HOSTNAME = process.env.DEPLOY_HOSTNAME || "login.dev.anosrep.org";
+const DEPLOY_REPO = process.env.DEPLOY_REPO || 'git://github.com/mozilla/browserid';
+const DEPLOY_BRANCH = process.env.DEPLOY_BRANCH || 'dev';
 
 console.log(new Date().toISOString() + ": deploy server starting up");
+
+// set the region (or use the default if none supplied)
+var region = aws.createClients(process.env.AWS_REGION);
+console.log(new Date().toISOString() + ": (Using region", region + ")");
 
 // a class capable of deploying and emmitting events along the way
 function Deployer() {
@@ -65,7 +72,7 @@ Deployer.prototype._cleanUpOldVMs = function() {
           self.emit('info', 'decommissioning VM: ' + o.name + ' - ' + o.instanceId);
           vm.destroy(o.instanceId, function(err, r) {
             if (err) self.emit('info', 'decomissioning failed: ' + err);
-            else self.emit('info', 'decomissioning succeeded of ' + r);
+            else self.emit('info', 'decommissioning succeeded of ' + r.name + ' - ' + r.instanceId);
           })
         }
       });
@@ -96,7 +103,10 @@ Deployer.prototype._deployNewCode = function(cb) {
       self.emit('error', "can't npm install to prepare to run deploy_dev");
       return;
     }
-    var p = spawn(path.join(__dirname, 'deploy_dev.js'), [], { cwd: self._codeDir });
+    var p = spawn(path.join(__dirname, 'deploy_dev.js'), [], {
+      cwd: self._codeDir,
+      env: process.env
+    });
 
     p.stdout.on('data', splitAndEmit);
     p.stderr.on('data', splitAndEmit);
@@ -109,7 +119,8 @@ Deployer.prototype._deployNewCode = function(cb) {
 
 Deployer.prototype._pullLatest = function(cb) {
   var self = this;
-  git.pull(this._codeDir, 'git://github.com/mozilla/browserid', 'dev', function(l) {
+
+  git.pull(this._codeDir, DEPLOY_REPO, DEPLOY_BRANCH, function(l) {
     self.emit('progress', l);
   }, function(err) {
     if (err) return cb(err);
@@ -294,7 +305,8 @@ deployer.on('ready', function() {
 
   app.use(express.static(deployLogDir));
 
-  app.listen(process.env['PORT'] || 8080, function() {
-    console.log(new Date().toISOString() + ": deploy server bound");
+  var port = process.env['PORT'] || 8080;
+  app.listen(port, function() {
+    console.log(new Date().toISOString() + ": deploy server bound to port " + port);
   });
 });
