@@ -11,5 +11,6 @@ Steps to deploy the deployer:
         -s ~/.allmysecrets/personatest.org/personatest.org.key --ssl=force
 
 3. Provide the VM with the ability to create VMs and manipulate DNS (hopefully this happens with IAM roles)
-4. git push deployer HEAD:master
+4. copy up ~app/key.pem and ~app/cert.pem (SSL credentials for the domain you're deploying to)
+5. git push deployer HEAD:master
 
