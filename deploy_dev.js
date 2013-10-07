@@ -52,6 +52,7 @@ DevDeployer.prototype.create = function(cb) {
     "node_modules/.bin/awsbox create",
     "-n \"" + DEPLOY_HOSTNAME + " (" + self.sha + ")\"",
     "-u https://" + DEPLOY_HOSTNAME,
+    "--noemail",
     "-p " + CERT_PEM,
     "-s " + KEY_PEM,
     "-x " + SMTP_JSON,
